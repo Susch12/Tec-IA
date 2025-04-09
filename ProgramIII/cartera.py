@@ -25,11 +25,24 @@ def evaluar_fitness(individuo, lambda_riesgo=0.5):
     return retorno - lambda_riesgo * riesgo
 
 # Selección por torneo
-def seleccionar_padres(poblacion, fitnesses, k=3):
-    indices = np.random.choice(len(poblacion), k)
-    mejor = max(indices, key=lambda i: fitnesses[i])
-    return poblacion[mejor]
+def seleccionar_padres(poblacion, fitnesses):
+    fitnesses = np.array(fitnesses)
 
+    # Normalizar los fitness para obtener probabilidades (evitar negativos)
+    min_fit = np.min(fitnesses)
+    if min_fit < 0:
+        fitnesses = fitnesses - min_fit + 1e-6  # para que todos sean positivos
+
+    total_fit = np.sum(fitnesses)
+    if total_fit == 0:
+        # Evitar división por cero si todos los fitness son iguales
+        probabilidades = np.ones(len(poblacion)) / len(poblacion)
+    else:
+        probabilidades = fitnesses / total_fit
+
+    # Elegir un individuo según la ruleta
+    elegido_idx = np.random.choice(len(poblacion), p=probabilidades)
+    return poblacion[elegido_idx]
 # Cruce por promedio (simple)
 def cruzar(padre1, padre2):
     hijo = (padre1 + padre2) / 2
